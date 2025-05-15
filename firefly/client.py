@@ -1,31 +1,13 @@
 # stdlib imports
-from dataclasses import dataclass
-import time
-from typing import Optional, Dict, Any, List
+from typing import Optional, Dict, Any
 
 # third party imports
 import requests
 
 # local imports
 from .exceptions import FireflyAPIError, FireflyAuthError
-
-
-@dataclass
-class FireflyImage:
-    url: str
-
-
-@dataclass
-class FireflyImageOutput:
-    seed: int
-    image: FireflyImage
-
-
-@dataclass
-class FireflyImageResponse:
-    size: Dict[str, Any]
-    outputs: List[FireflyImageOutput]
-    contentClass: Optional[str] = None
+from .models import FireflyImage, FireflyImageOutput, FireflyImageResponse
+from .ims_auth import AdobeIMSAuth
 
 
 class FireflyClient:
@@ -38,35 +20,12 @@ class FireflyClient:
     """
 
     BASE_URL = "https://firefly-api.adobe.io/v3/images/generate"
-    TOKEN_URL = "https://ims-na1.adobelogin.com/ims/token/v3"
 
     def __init__(self, client_id: str, client_secret: str, timeout: int = 30):
         self.client_id = client_id
         self.client_secret = client_secret
         self.timeout = timeout
-        self._access_token = None
-        self._token_expiry = 0
-
-    def _get_access_token(self) -> str:
-        now = time.time()
-        if self._access_token and now < self._token_expiry - 60:
-            return self._access_token
-        # Retrieve new token
-        payload = {
-            "grant_type": "client_credentials",
-            "client_id": self.client_id,
-            "client_secret": self.client_secret,
-            "scope": "openid,AdobeID,session,additional_info,read_organizations,firefly_api,ff_apis",
-        }
-        try:
-            resp = requests.post(self.TOKEN_URL, data=payload, timeout=self.timeout)
-            resp.raise_for_status()
-            data = resp.json()
-            self._access_token = data["access_token"]
-            self._token_expiry = now + int(data.get("expires_in", 3600))
-            return self._access_token
-        except Exception as e:
-            raise FireflyAuthError(f"Failed to retrieve access token: {e}")
+        self._ims_auth = AdobeIMSAuth(client_id, client_secret, timeout)
 
     def _request(
         self,
@@ -78,7 +37,7 @@ class FireflyClient:
         data: Any = None,
         **kwargs,
     ) -> Any:
-        token = self._get_access_token()
+        token = self._ims_auth.get_access_token()
         req_headers = headers.copy() if headers else {}
         req_headers["Authorization"] = f"Bearer {token}"
         req_headers["x-api-key"] = self.client_id
