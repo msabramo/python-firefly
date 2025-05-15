@@ -21,15 +21,18 @@ def client():
     return FireflyClient(client_id="dummy_id", client_secret="dummy_secret")
 
 
-@responses.activate
-def test_generate_image_success(client):
-    # Mock token endpoint
+@pytest.fixture
+def mock_valid_ims_access_token_response():
     responses.add(
         responses.POST,
         TOKEN_URL,
         json={"access_token": "test_token", "expires_in": 3600},
         status=200,
     )
+
+
+@responses.activate
+def test_generate_image_success(client, mock_valid_ims_access_token_response):
     # Mock image generation endpoint with structure matching the Firefly docs:
     responses.add(
         responses.POST,
@@ -102,14 +105,7 @@ def test_auth_failure(client):
 
 
 @responses.activate
-def test_api_error(client):
-    # Mock token endpoint
-    responses.add(
-        responses.POST,
-        TOKEN_URL,
-        json={"access_token": "test_token", "expires_in": 3600},
-        status=200,
-    )
+def test_api_error(client, mock_valid_ims_access_token_response):
     # Mock image generation endpoint with 500
     responses.add(
         responses.POST,
@@ -122,14 +118,7 @@ def test_api_error(client):
 
 
 @responses.activate
-def test_unexpected_response_format(client):
-    # Mock token endpoint
-    responses.add(
-        responses.POST,
-        TOKEN_URL,
-        json={"access_token": "test_token", "expires_in": 3600},
-        status=200,
-    )
+def test_unexpected_response_format(client, mock_valid_ims_access_token_response):
     # Mock image generation endpoint with unexpected format
     responses.add(
         responses.POST,
