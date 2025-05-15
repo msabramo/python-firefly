@@ -6,7 +6,7 @@ import requests
 
 # local imports
 from .exceptions import FireflyAPIError, FireflyAuthError
-from .models import FireflyImage, FireflyImageOutput, FireflyImageResponse
+from .models import FireflyImage, FireflyImageOutput, FireflyImageResponse, FireflyImageSize
 from .ims_auth import AdobeIMSAuth
 
 
@@ -88,8 +88,9 @@ class FireflyClient:
                 )
                 for output in resp["outputs"]
             ]
+            size = resp["size"]
             return FireflyImageResponse(
-                size=resp["size"],
+                size=FireflyImageSize(width=size["width"], height=size["height"]),
                 outputs=outputs,
                 contentClass=resp.get("contentClass"),
             )

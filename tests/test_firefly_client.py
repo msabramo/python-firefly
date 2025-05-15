@@ -53,7 +53,8 @@ def test_generate_image_success(client):
     )
 
     response = client.generate_image(prompt="a cat coding")
-    assert response.size == {"width": 2048, "height": 2048}
+    assert response.size.width == 2048
+    assert response.size.height == 2048
     assert response.contentClass == "art"
     assert len(response.outputs) == 1
     output = response.outputs[0]

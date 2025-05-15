@@ -1,5 +1,10 @@
 from dataclasses import dataclass
-from typing import Optional, Dict, Any, List
+from typing import Optional, List
+
+@dataclass
+class FireflyImageSize:
+    width: int
+    height: int
 
 @dataclass
 class FireflyImage:
@@ -12,6 +17,6 @@ class FireflyImageOutput:
 
 @dataclass
 class FireflyImageResponse:
-    size: Dict[str, Any]
+    size: FireflyImageSize
     outputs: List[FireflyImageOutput]
     contentClass: Optional[str] = None 
