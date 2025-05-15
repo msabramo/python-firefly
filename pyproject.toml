@@ -1,0 +1,15 @@
+[project]
+name = "firefly"
+version = "0.1.0"
+description = "A Python client for the Adobe Firefly API"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "requests>=2.32.3",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.3.5",
+    "responses>=0.25.7",
+]
