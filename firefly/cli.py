@@ -1,6 +1,6 @@
 # stdlib imports
 import contextlib
-import json as _json
+import json
 import os
 from urllib.parse import urlparse
 
@@ -123,7 +123,7 @@ def _generate(client_id, client_secret, prompt, download, format, verbose):
                 fg=typer.colors.YELLOW, err=True
             )
         else:
-            raw_json = _json.dumps(response.json())
+            raw_json = json.dumps(response.json())
             typer.secho(
                 f"Received HTTP 200 response ({len(raw_json.encode('utf-8'))} bytes) from {image_api_url}.",
                 fg=typer.colors.YELLOW, err=True
