@@ -16,7 +16,7 @@ def use_requests_mock():
 
     ims_url = "https://ims-na1.adobelogin.com/ims/token/v3"
     image_url = "https://firefly-api.adobe.io/v3/images/generate"
-    mock_image = "https://example.com/fake-image.jpg"
+    mock_image = "https://clio-assets.adobe.com/clio-playground/image-style-zeros/v3/images/Photo_manipulation/4.jpg"
     rsps.add(
         responses.POST,
         ims_url,
@@ -69,6 +69,7 @@ def generate(
     with with_maybe_use_mocks(use_mocks):
         _generate(client_id, client_secret, prompt, output_file, download, format, verbose)
 
+
 def _generate(client_id, client_secret, prompt, output_file, download, format, verbose):
     client = FireflyClient(client_id=client_id, client_secret=client_secret)
     image_api_url = client.BASE_URL
@@ -103,13 +104,7 @@ def _generate(client_id, client_secret, prompt, output_file, download, format, v
                 fg=typer.colors.YELLOW, err=True
             )
         else:
-            raw_json = _json.dumps({
-                "outputs": [
-                    {"image": {"url": image_url}, "seed": response.outputs[0].seed}
-                ],
-                "size": {"width": response.size.width, "height": response.size.height},
-                "contentClass": response.contentClass,
-            })
+            raw_json = _json.dumps(response.json())
             typer.secho(
                 f"Received HTTP 200 response ({len(raw_json.encode('utf-8'))} bytes) from {image_api_url}.",
                 fg=typer.colors.YELLOW, err=True
@@ -117,15 +112,7 @@ def _generate(client_id, client_secret, prompt, output_file, download, format, v
     # Output formatting
     if format == "json":
         from rich import print_json
-        def response_to_dict(resp):
-            return {
-                "size": {"width": resp.size.width, "height": resp.size.height},
-                "outputs": [
-                    {"seed": o.seed, "image": {"url": o.image.url}} for o in resp.outputs
-                ],
-                "contentClass": resp.contentClass,
-            }
-        print_json(_json.dumps(response_to_dict(response), indent=2))
+        print_json(_json.dumps(response.json(), indent=2))
     else:
         typer.echo(f"Generated image URL: {image_url}")
     if output_file:

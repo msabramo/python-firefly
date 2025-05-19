@@ -55,7 +55,7 @@ class FireflyClient:
                 **kwargs,
             )
             resp.raise_for_status()
-            return resp.json()
+            return resp
         except requests.exceptions.HTTPError as e:
             if e.response.status_code == 401:
                 raise FireflyAuthError(f"Unauthorized: {e.response.text}")
@@ -81,18 +81,19 @@ class FireflyClient:
         data.update(kwargs)
         resp = self._request(method="POST", url=self.BASE_URL, json=data)
         try:
+            resp_json = resp.json()
             outputs = [
                 FireflyImageOutput(
                     seed=output["seed"],
                     image=FireflyImage(url=output["image"]["url"])
-                )
-                for output in resp["outputs"]
+                ) for output in resp_json["outputs"]
             ]
-            size = resp["size"]
+            size = resp_json["size"]
             return FireflyImageResponse(
                 size=FireflyImageSize(width=size["width"], height=size["height"]),
                 outputs=outputs,
-                contentClass=resp.get("contentClass"),
+                contentClass=resp_json.get("contentClass"),
+                _response=resp,
             )
         except (KeyError, IndexError, TypeError) as e:
             raise FireflyAPIError(f"Unexpected response format: {resp}")
