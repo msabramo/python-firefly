@@ -1,7 +1,14 @@
-# third party imports
-import responses
-import typer
+# stdlib imports
 import contextlib
+import json as _json
+import os
+from urllib.parse import urlparse
+
+# third party imports
+import requests
+import responses
+from rich import print_json
+import typer
 
 # local imports
 from firefly import FireflyClient
@@ -52,13 +59,23 @@ def with_maybe_use_mocks(use_mocks):
             rsps.reset()
 
 
+def download_image(image_url: str):
+    r = requests.get(image_url)
+    r.raise_for_status()
+    # Get the last part of the URL after the last /
+    path = urlparse(image_url).path
+    filename = os.path.basename(path)
+    with open(filename, "wb") as f:
+        f.write(r.content)
+    typer.echo(f"Image downloaded to {filename}")
+
+
 @app.command()
 def generate(
     client_id: str = typer.Option(..., help="Your Adobe Firefly client ID"),
     client_secret: str = typer.Option(..., help="Your Adobe Firefly client secret"),
     prompt: str = typer.Option(..., help="Text prompt for image generation"),
-    output_file: str = typer.Option(None, help="Optional file to save the image URL"),
-    download: bool = typer.Option(False, help="Download the generated image to a file (uses output_file as filename)"),
+    download: bool = typer.Option(False, help="Download the generated image to a file (filename is taken from the image URL)"),
     use_mocks: bool = typer.Option(False, help="Mock API responses for testing without a valid client secret."),
     format: str = typer.Option("text", help="Output format: 'text' (default) or 'json' for pretty-printed JSON response."),
     verbose: bool = typer.Option(False, help="Print status messages to stderr."),
@@ -67,20 +84,20 @@ def generate(
     Generate an image from a text prompt using Adobe Firefly API.
     """
     with with_maybe_use_mocks(use_mocks):
-        _generate(client_id, client_secret, prompt, output_file, download, format, verbose)
+        _generate(client_id, client_secret, prompt, download, format, verbose)
 
 
-def _generate(client_id, client_secret, prompt, output_file, download, format, verbose):
+def _generate(client_id, client_secret, prompt, download, format, verbose):
     client = FireflyClient(client_id=client_id, client_secret=client_secret)
     image_api_url = client.BASE_URL
     if verbose:
         typer.secho(f"Doing request to {image_api_url} ...", fg=typer.colors.YELLOW, err=True)
-    import requests as _requests
-    import json as _json
+    _requests = requests
     response_obj = None
     status_code = None
     num_bytes = None
     orig_request = _requests.request
+
     def capture_request(*args, **kwargs):
         resp = orig_request(*args, **kwargs)
         nonlocal response_obj, status_code, num_bytes
@@ -91,12 +108,14 @@ def _generate(client_id, client_secret, prompt, output_file, download, format, v
         except Exception:
             num_bytes = None
         return resp
+
     _requests.request = capture_request
+
     try:
         response = client.generate_image(prompt=prompt)
     finally:
         _requests.request = orig_request
-    image_url = response.outputs[0].image.url
+
     if verbose:
         if response_obj is not None:
             typer.secho(
@@ -109,24 +128,17 @@ def _generate(client_id, client_secret, prompt, output_file, download, format, v
                 f"Received HTTP 200 response ({len(raw_json.encode('utf-8'))} bytes) from {image_api_url}.",
                 fg=typer.colors.YELLOW, err=True
             )
+
     # Output formatting
     if format == "json":
-        from rich import print_json
-        print_json(_json.dumps(response.json(), indent=2))
+        print_json(data=response.json())
     else:
-        typer.echo(f"Generated image URL: {image_url}")
-    if output_file:
-        if download:
-            import requests
-            r = requests.get(image_url)
-            r.raise_for_status()
-            with open(output_file, "wb") as f:
-                f.write(r.content)
-            typer.echo(f"Image downloaded to {output_file}")
-        else:
-            with open(output_file, "w") as f:
-                f.write(image_url + "\n")
-            typer.echo(f"Image URL saved to {output_file}")
+        for output in response.outputs:
+            image_url = output.image.url
+            typer.echo(f"Generated image URL: {image_url}")
+            if download:
+                download_image(image_url)
+
 
 if __name__ == "__main__":
     app() 
