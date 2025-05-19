@@ -18,12 +18,15 @@ app = typer.Typer()
 
 
 def use_requests_mock():
-    rsps = responses.RequestsMock()
+    rsps = responses.RequestsMock(assert_all_requests_are_fired=False)
     rsps.start()
 
     ims_url = "https://ims-na1.adobelogin.com/ims/token/v3"
     image_url = "https://firefly-api.adobe.io/v3/images/generate"
     mock_image = "https://clio-assets.adobe.com/clio-playground/image-style-zeros/v3/images/Photo_manipulation/4.jpg"
+    with open("tests/images/4.jpg", "rb") as img_file:
+        img_data = img_file.read()
+
     rsps.add(
         responses.POST,
         ims_url,
@@ -41,6 +44,14 @@ def use_requests_mock():
             "contentClass": "mock-art",
         },
         status=200,
+    )
+    # Add mock for the image download
+    rsps.add(
+        responses.GET,
+        mock_image,
+        body=img_data,
+        status=200,
+        content_type="image/jpeg",
     )
 
     return rsps
@@ -67,7 +78,8 @@ def download_image(image_url: str):
     filename = os.path.basename(path)
     with open(filename, "wb") as f:
         f.write(r.content)
-    typer.echo(f"Image downloaded to {filename}")
+    size = len(r.content)
+    typer.echo(f"Downloaded image ({size} bytes) to {filename}")
 
 
 @app.command()
