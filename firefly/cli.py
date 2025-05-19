@@ -1,11 +1,56 @@
 # third party imports
+import responses
 import typer
+import contextlib
 
 # local imports
 from firefly import FireflyClient
 
 
 app = typer.Typer()
+
+
+def use_requests_mock():
+    rsps = responses.RequestsMock()
+    rsps.start()
+
+    ims_url = "https://ims-na1.adobelogin.com/ims/token/v3"
+    image_url = "https://firefly-api.adobe.io/v3/images/generate"
+    mock_image = "https://example.com/fake-image.jpg"
+    rsps.add(
+        responses.POST,
+        ims_url,
+        json={"access_token": "mock_token", "expires_in": 3600},
+        status=200,
+    )
+    rsps.add(
+        responses.POST,
+        image_url,
+        json={
+            "size": {"width": 1024, "height": 1024},
+            "outputs": [
+                {"seed": 123456, "image": {"url": mock_image}}
+            ],
+            "contentClass": "mock-art",
+        },
+        status=200,
+    )
+
+    return rsps
+
+
+@contextlib.contextmanager
+def with_maybe_use_mocks(use_mocks):
+    rsps = None
+    if use_mocks:
+        rsps = use_requests_mock()
+    try:
+        yield
+    finally:
+        if rsps is not None:
+            rsps.stop()
+            rsps.reset()
+
 
 @app.command()
 def generate(
@@ -21,32 +66,7 @@ def generate(
     """
     Generate an image from a text prompt using Adobe Firefly API.
     """
-    if use_mocks:
-        import responses
-        ims_url = "https://ims-na1.adobelogin.com/ims/token/v3"
-        image_url = "https://firefly-api.adobe.io/v3/images/generate"
-        mock_image = "https://example.com/fake-image.jpg"
-        with responses.RequestsMock() as rsps:
-            rsps.add(
-                responses.POST,
-                ims_url,
-                json={"access_token": "mock_token", "expires_in": 3600},
-                status=200,
-            )
-            rsps.add(
-                responses.POST,
-                image_url,
-                json={
-                    "size": {"width": 1024, "height": 1024},
-                    "outputs": [
-                        {"seed": 123456, "image": {"url": mock_image}}
-                    ],
-                    "contentClass": "mock-art",
-                },
-                status=200,
-            )
-            _generate(client_id, client_secret, prompt, output_file, download, format, verbose)
-    else:
+    with with_maybe_use_mocks(use_mocks):
         _generate(client_id, client_secret, prompt, output_file, download, format, verbose)
 
 def _generate(client_id, client_secret, prompt, output_file, download, format, verbose):
