@@ -123,6 +123,9 @@ def generate(
         raise typer.BadParameter("client_id must be provided as an option or via the FIREFLY_CLIENT_ID environment variable.")
     if not client_secret:
         raise typer.BadParameter("client_secret must be provided as an option or via the FIREFLY_CLIENT_SECRET environment variable.")
+    if num_variations is not None and not (1 <= num_variations <= 4):
+        typer.secho("--num-variations must be between 1 and 4", fg=typer.colors.RED, err=True)
+        raise typer.Exit(code=-1)
     # Parse JSON for style/structure if provided
     style_obj = None
     if style:

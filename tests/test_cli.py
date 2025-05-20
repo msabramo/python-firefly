@@ -219,3 +219,33 @@ def test_generate_invalid_json_structure(monkeypatch):
     )
     assert result.exit_code == 2
     assert "Invalid JSON for --structure" in result.output
+
+def test_generate_invalid_num_variations(monkeypatch):
+    # Test too low
+    result = runner.invoke(
+        app,
+        [
+            "image", "generate",
+            "--client-id", "dummy_id",
+            "--client-secret", "dummy_secret",
+            "--prompt", "test",
+            "--num-variations", "0",
+            "--use-mocks"
+        ]
+    )
+    assert result.exit_code == -1
+    assert "--num-variations must be between 1 and 4" in result.output
+    # Test too high
+    result = runner.invoke(
+        app,
+        [
+            "image", "generate",
+            "--client-id", "dummy_id",
+            "--client-secret", "dummy_secret",
+            "--prompt", "test",
+            "--num-variations", "5",
+            "--use-mocks"
+        ]
+    )
+    assert result.exit_code == -1
+    assert "--num-variations must be between 1 and 4" in result.output
