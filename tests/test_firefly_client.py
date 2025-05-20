@@ -23,6 +23,14 @@ def client():
 
 @pytest.fixture
 def mock_valid_ims_access_token_response():
+    """
+    Mock a successful response from the IMS token endpoint.
+
+    This is used to test the client's ability to handle a valid IMS access token.
+
+    Returns:
+        None
+    """
     responses.add(
         responses.POST,
         TOKEN_URL,
