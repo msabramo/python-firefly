@@ -17,6 +17,8 @@ from firefly import FireflyClient
 
 app = typer.Typer()
 
+image_app = typer.Typer()
+
 
 mock_image = "https://developer.adobe.com/firefly-services/docs/static/82044b6fe3cf44ec68c4872f784cd82d/96d48/cat-coding.webp"
 
@@ -85,7 +87,7 @@ def download_image(image_url: str):
     typer.echo(f"Downloaded image ({size} bytes) to {filename}")
 
 
-@app.command()
+@image_app.command()
 def generate(
     client_id: str = typer.Option(
         None,
@@ -174,6 +176,9 @@ def _generate(client_id, client_secret, prompt, download, show_images, format, v
                         subprocess.run([f"imgcat --url '{image_url}'"], shell=True, check=True)
                 except Exception as e:
                     typer.secho(f"[warn] Could not display image in terminal using imgcat: {e}", fg=typer.colors.YELLOW, err=True)
+
+
+app.add_typer(image_app, name="image")
 
 
 if __name__ == "__main__":
