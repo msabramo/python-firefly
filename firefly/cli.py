@@ -20,7 +20,7 @@ app = typer.Typer()
 image_app = typer.Typer()
 
 
-mock_image = "https://developer.adobe.com/firefly-services/docs/static/82044b6fe3cf44ec68c4872f784cd82d/96d48/cat-coding.webp"
+mock_image = "https://developer.adobe.com/firefly-services/docs/static/82044b6fe3cf44ec68c4872f784cd82d/96d48/cat-coding.png"
 
 
 def use_requests_mock():
@@ -29,7 +29,8 @@ def use_requests_mock():
 
     ims_url = "https://ims-na1.adobelogin.com/ims/token/v3"
     image_url = "https://firefly-api.adobe.io/v3/images/generate"
-    with open("tests/images/cat-coding.webp", "rb") as img_file:
+    mock_image_path = os.path.join(os.path.dirname(__file__), "..", "tests", "images", "cat-coding.png")
+    with open(mock_image_path, "rb") as img_file:
         img_data = img_file.read()
 
     rsps.add(
