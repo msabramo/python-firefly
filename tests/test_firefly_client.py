@@ -136,3 +136,16 @@ def test_unexpected_response_format(client, mock_valid_ims_access_token_response
     )
     with pytest.raises(FireflyAPIError):
         client.generate_image(prompt="bad response")
+
+
+@responses.activate
+def test_image_generation_unauthorized(client, mock_valid_ims_access_token_response):
+    # Mock image generation endpoint with 401 Unauthorized
+    responses.add(
+        responses.POST,
+        IMAGE_URL,
+        json={"error": "unauthorized"},
+        status=401,
+    )
+    with pytest.raises(FireflyAuthError):
+        client.generate_image(prompt="unauthorized access")
