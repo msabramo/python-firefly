@@ -87,8 +87,16 @@ def download_image(image_url: str):
 
 @app.command()
 def generate(
-    client_id: str = typer.Option(..., help="Your Adobe Firefly client ID"),
-    client_secret: str = typer.Option(..., help="Your Adobe Firefly client secret"),
+    client_id: str = typer.Option(
+        None,
+        help="Your Adobe Firefly client ID",
+        envvar=["FIREFLY_CLIENT_ID"],
+    ),
+    client_secret: str = typer.Option(
+        None,
+        help="Your Adobe Firefly client secret",
+        envvar=["FIREFLY_CLIENT_SECRET"],
+    ),
     prompt: str = typer.Option(..., help="Text prompt for image generation"),
     download: bool = typer.Option(False, help="Download the generated image to a file (filename is taken from the image URL)"),
     show_images: bool = typer.Option(False, help="Display the image in the terminal after download."),
@@ -99,6 +107,10 @@ def generate(
     """
     Generate an image from a text prompt using Adobe Firefly API.
     """
+    if not client_id:
+        raise typer.BadParameter("client_id must be provided as an option or via the FIREFLY_CLIENT_ID environment variable.")
+    if not client_secret:
+        raise typer.BadParameter("client_secret must be provided as an option or via the FIREFLY_CLIENT_SECRET environment variable.")
     with with_maybe_use_mocks(use_mocks):
         _generate(client_id, client_secret, prompt, download, show_images, format, verbose)
 
