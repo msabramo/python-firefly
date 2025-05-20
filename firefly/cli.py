@@ -8,6 +8,7 @@ from urllib.parse import urlparse
 import requests
 import responses
 from rich import print_json
+import subprocess
 import typer
 
 # local imports
@@ -17,14 +18,16 @@ from firefly import FireflyClient
 app = typer.Typer()
 
 
+mock_image = "https://developer.adobe.com/firefly-services/docs/static/82044b6fe3cf44ec68c4872f784cd82d/96d48/cat-coding.webp"
+
+
 def use_requests_mock():
     rsps = responses.RequestsMock(assert_all_requests_are_fired=False)
     rsps.start()
 
     ims_url = "https://ims-na1.adobelogin.com/ims/token/v3"
     image_url = "https://firefly-api.adobe.io/v3/images/generate"
-    mock_image = "https://clio-assets.adobe.com/clio-playground/image-style-zeros/v3/images/Photo_manipulation/4.jpg"
-    with open("tests/images/4.jpg", "rb") as img_file:
+    with open("tests/images/cat-coding.webp", "rb") as img_file:
         img_data = img_file.read()
 
     rsps.add(
@@ -88,6 +91,7 @@ def generate(
     client_secret: str = typer.Option(..., help="Your Adobe Firefly client secret"),
     prompt: str = typer.Option(..., help="Text prompt for image generation"),
     download: bool = typer.Option(False, help="Download the generated image to a file (filename is taken from the image URL)"),
+    show_images: bool = typer.Option(False, help="Display the image in the terminal after download."),
     use_mocks: bool = typer.Option(False, help="Mock API responses for testing without a valid client secret."),
     format: str = typer.Option("text", help="Output format: 'text' (default) or 'json' for pretty-printed JSON response."),
     verbose: bool = typer.Option(False, help="Print status messages to stderr."),
@@ -96,10 +100,10 @@ def generate(
     Generate an image from a text prompt using Adobe Firefly API.
     """
     with with_maybe_use_mocks(use_mocks):
-        _generate(client_id, client_secret, prompt, download, format, verbose)
+        _generate(client_id, client_secret, prompt, download, show_images, format, verbose)
 
 
-def _generate(client_id, client_secret, prompt, download, format, verbose):
+def _generate(client_id, client_secret, prompt, download, show_images, format, verbose):
     client = FireflyClient(client_id=client_id, client_secret=client_secret)
     image_api_url = client.BASE_URL
     if verbose:
@@ -150,6 +154,14 @@ def _generate(client_id, client_secret, prompt, download, format, verbose):
             typer.echo(f"Generated image URL: {image_url}")
             if download:
                 download_image(image_url)
+            if show_images:
+                try:
+                    if image_url == mock_image:
+                        subprocess.run(["imgcat tests/images/cat-coding.png"], shell=True, check=True)
+                    else:
+                        subprocess.run([f"imgcat --url '{image_url}'"], shell=True, check=True)
+                except Exception as e:
+                    typer.secho(f"[warn] Could not display image in terminal using imgcat: {e}", fg=typer.colors.YELLOW, err=True)
 
 
 if __name__ == "__main__":
