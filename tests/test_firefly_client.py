@@ -11,6 +11,7 @@ from firefly import (
     FireflyAPIError,
     FireflyAuthError,
 )
+from unittest import mock
 
 TOKEN_URL = "https://ims-na1.adobelogin.com/ims/token/v3"
 IMAGE_URL = "https://firefly-api.adobe.io/v3/images/generate"
@@ -149,3 +150,11 @@ def test_image_generation_unauthorized(client, mock_valid_ims_access_token_respo
     )
     with pytest.raises(FireflyAuthError):
         client.generate_image(prompt="unauthorized access")
+
+
+@responses.activate
+def test_generate_image_value_error(client, mock_valid_ims_access_token_response):
+    # Patch requests.request to raise ValueError
+    with mock.patch("requests.request", side_effect=ValueError("bad value")):
+        with pytest.raises(FireflyAPIError):
+            client.generate_image(prompt="trigger value error")
