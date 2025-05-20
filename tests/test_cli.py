@@ -68,6 +68,22 @@ def test_generate_show_images(mock_run):
     assert mock_run.called
     assert "Generated image URL:" in result.output
 
+@mock.patch("subprocess.run", side_effect=FileNotFoundError("imgcat not found"))
+def test_generate_show_images_imgcat_missing(mock_run):
+    result = runner.invoke(
+        app,
+        [
+            "image", "generate",
+            "--client-id", "dummy_id",
+            "--client-secret", "dummy_secret",
+            "--prompt", "a cat coding",
+            "--use-mocks",
+            "--show-images"
+        ]
+    )
+    assert result.exit_code == 0
+    assert "[warn] Could not display image in terminal using imgcat" in result.output
+
 @pytest.mark.parametrize("missing,expected", [
     ("--client-id", "client_id must be provided"),
     ("--client-secret", "client_secret must be provided"),

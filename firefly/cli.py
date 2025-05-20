@@ -134,10 +134,7 @@ def _generate(client_id, client_secret, prompt, download, show_images, format, v
         nonlocal response_obj, status_code, num_bytes
         response_obj = resp
         status_code = resp.status_code
-        try:
-            num_bytes = len(resp.content)
-        except Exception:
-            num_bytes = None
+        num_bytes = len(resp.content)
         return resp
 
     _requests.request = capture_request
@@ -148,17 +145,10 @@ def _generate(client_id, client_secret, prompt, download, show_images, format, v
         _requests.request = orig_request
 
     if verbose:
-        if response_obj is not None:
-            typer.secho(
-                f"Received HTTP {status_code} response ({num_bytes} bytes) from {image_api_url}.",
-                fg=typer.colors.YELLOW, err=True
-            )
-        else:
-            raw_json = json.dumps(response.json())
-            typer.secho(
-                f"Received HTTP 200 response ({len(raw_json.encode('utf-8'))} bytes) from {image_api_url}.",
-                fg=typer.colors.YELLOW, err=True
-            )
+        typer.secho(
+            f"Received HTTP {status_code} response ({num_bytes} bytes) from {image_api_url}.",
+            fg=typer.colors.YELLOW, err=True
+        )
 
     # Output formatting
     if format == "json":
@@ -171,10 +161,10 @@ def _generate(client_id, client_secret, prompt, download, show_images, format, v
                 download_image(image_url)
             if show_images:
                 try:
+                    imgcat_cmd = f"imgcat --url '{image_url}'"
                     if image_url == mock_image:
-                        subprocess.run(["imgcat tests/images/cat-coding.png"], shell=True, check=True)
-                    else:
-                        subprocess.run([f"imgcat --url '{image_url}'"], shell=True, check=True)
+                        imgcat_cmd = "imgcat tests/images/cat-coding.png"
+                    subprocess.run([imgcat_cmd], shell=True, check=True)
                 except Exception as e:
                     typer.secho(f"[warn] Could not display image in terminal using imgcat: {e}", fg=typer.colors.YELLOW, err=True)
 
