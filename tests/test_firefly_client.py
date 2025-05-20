@@ -158,3 +158,97 @@ def test_generate_image_value_error(client, mock_valid_ims_access_token_response
     with mock.patch("requests.request", side_effect=ValueError("bad value")):
         with pytest.raises(FireflyAPIError):
             client.generate_image(prompt="trigger value error")
+
+
+@responses.activate
+def test_generate_image_with_all_new_parameters(client, mock_valid_ims_access_token_response):
+    responses.add(
+        responses.POST,
+        IMAGE_URL,
+        json={
+            "size": {"width": 1024, "height": 768},
+            "outputs": [
+                {"seed": 123, "image": {"url": "https://example.com/image.png"}}
+            ],
+            "contentClass": "photo",
+        },
+        status=200,
+    )
+    style = {"presets": ["bw"], "strength": 50}
+    structure = {"strength": 80, "imageReference": {"source": {"uploadId": "abc123"}}}
+    response = client.generate_image(
+        prompt="test prompt",
+        num_variations=2,
+        style=style,
+        structure=structure,
+        prompt_biasing_locale_code="en-US",
+        negative_prompt="no text",
+        seed=42,
+        aspect_ratio="16:9",
+        output_format="jpeg",
+        extra_param="extra_value"
+    )
+    # Check the outgoing request body
+    image_call = responses.calls[1]
+    body = json.loads(image_call.request.body.decode())
+    assert body["prompt"] == "test prompt"
+    assert body["numVariations"] == 2
+    assert body["style"] == style
+    assert body["structure"] == structure
+    assert body["promptBiasingLocaleCode"] == "en-US"
+    assert body["negativePrompt"] == "no text"
+    assert body["seed"] == 42
+    assert body["aspectRatio"] == "16:9"
+    assert body["outputFormat"] == "jpeg"
+    assert body["extra_param"] == "extra_value"
+    # Check the response is parsed correctly
+    assert response.size.width == 1024
+    assert response.size.height == 768
+    assert response.contentClass == "photo"
+    assert len(response.outputs) == 1
+    assert response.outputs[0].seed == 123
+    assert response.outputs[0].image.url == "https://example.com/image.png"
+
+
+@responses.activate
+def test_generate_image_content_class(client, mock_valid_ims_access_token_response):
+    responses.add(
+        responses.POST,
+        IMAGE_URL,
+        json={
+            "size": {"width": 512, "height": 512},
+            "outputs": [
+                {"seed": 1, "image": {"url": "https://example.com/img.png"}}
+            ],
+            "contentClass": "photo",
+        },
+        status=200,
+    )
+    # Valid value: 'photo'
+    response = client.generate_image(prompt="test", content_class="photo")
+    image_call = responses.calls[1]
+    body = json.loads(image_call.request.body.decode())
+    assert body["contentClass"] == "photo"
+    assert response.contentClass == "photo"
+    # Valid value: 'art'
+    responses.reset()
+    responses.add(
+        responses.POST,
+        IMAGE_URL,
+        json={
+            "size": {"width": 512, "height": 512},
+            "outputs": [
+                {"seed": 2, "image": {"url": "https://example.com/img2.png"}}
+            ],
+            "contentClass": "art",
+        },
+        status=200,
+    )
+    response = client.generate_image(prompt="test", content_class="art")
+    image_call = responses.calls[0]
+    body = json.loads(image_call.request.body.decode())
+    assert body["contentClass"] == "art"
+    assert response.contentClass == "art"
+    # Invalid value
+    with pytest.raises(ValueError):
+        client.generate_image(prompt="test", content_class="invalid")

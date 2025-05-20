@@ -101,6 +101,15 @@ def generate(
         envvar=["FIREFLY_CLIENT_SECRET"],
     ),
     prompt: str = typer.Option(..., help="Text prompt for image generation"),
+    num_variations: int = typer.Option(None, help="Number of images to generate (numVariations)"),
+    style: str = typer.Option(None, help="Style object as JSON string (presets, imageReference, strength, etc.)"),
+    structure: str = typer.Option(None, help="Structure object as JSON string (strength, imageReference, etc.)"),
+    prompt_biasing_locale_code: str = typer.Option(None, help="Locale code for prompt biasing (promptBiasingLocaleCode)"),
+    negative_prompt: str = typer.Option(None, help="Negative prompt to avoid certain content"),
+    seed: int = typer.Option(None, help="Seed for deterministic output"),
+    aspect_ratio: str = typer.Option(None, help="Aspect ratio, e.g. '1:1', '16:9'"),
+    output_format: str = typer.Option(None, help="Output format, e.g. 'jpeg', 'png'"),
+    content_class: str = typer.Option(None, help="Content class: 'photo' or 'art'"),
     download: bool = typer.Option(False, help="Download the generated image to a file (filename is taken from the image URL)"),
     show_images: bool = typer.Option(False, help="Display the image in the terminal after download."),
     use_mocks: bool = typer.Option(False, help="Mock API responses for testing without a valid client secret."),
@@ -114,11 +123,39 @@ def generate(
         raise typer.BadParameter("client_id must be provided as an option or via the FIREFLY_CLIENT_ID environment variable.")
     if not client_secret:
         raise typer.BadParameter("client_secret must be provided as an option or via the FIREFLY_CLIENT_SECRET environment variable.")
-    with with_maybe_use_mocks(use_mocks):
-        _generate(client_id, client_secret, prompt, download, show_images, format, verbose)
+    # Parse JSON for style/structure if provided
+    style_obj = None
+    if style:
+        try:
+            style_obj = json.loads(style)
+        except Exception as e:
+            raise typer.BadParameter(f"Invalid JSON for --style: {e}")
+    structure_obj = None
+    if structure:
+        try:
+            structure_obj = json.loads(structure)
+        except Exception as e:
+            raise typer.BadParameter(f"Invalid JSON for --structure: {e}")
+    try:
+        with with_maybe_use_mocks(use_mocks):
+            _generate(
+                client_id, client_secret, prompt, download, show_images, format, verbose,
+                num_variations=num_variations,
+                style=style_obj,
+                structure=structure_obj,
+                prompt_biasing_locale_code=prompt_biasing_locale_code,
+                negative_prompt=negative_prompt,
+                seed=seed,
+                aspect_ratio=aspect_ratio,
+                output_format=output_format,
+                content_class=content_class,
+            )
+    except ValueError as e:
+        typer.secho(str(e), fg=typer.colors.RED, err=True)
+        raise typer.Exit(code=-1)
 
 
-def _generate(client_id, client_secret, prompt, download, show_images, format, verbose):
+def _generate(client_id, client_secret, prompt, download, show_images, format, verbose, **kwargs):
     client = FireflyClient(client_id=client_id, client_secret=client_secret)
     image_api_url = client.BASE_URL
     if verbose:
@@ -140,7 +177,7 @@ def _generate(client_id, client_secret, prompt, download, show_images, format, v
     _requests.request = capture_request
 
     try:
-        response = client.generate_image(prompt=prompt)
+        response = client.generate_image(prompt=prompt, **kwargs)
     finally:
         _requests.request = orig_request
 

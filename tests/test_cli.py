@@ -137,3 +137,85 @@ def test_generate_verbose(monkeypatch):
     # Should include verbose status messages
     assert "Doing request to" in result.output
     assert "Received HTTP" in result.output
+
+def test_generate_with_all_new_options(monkeypatch):
+    # Valid content_class: photo
+    result = runner.invoke(
+        app,
+        [
+            "image", "generate",
+            "--client-id", "dummy_id",
+            "--client-secret", "dummy_secret",
+            "--prompt", "test",
+            "--num-variations", "2",
+            "--style", '{"presets": ["bw"], "strength": 50}',
+            "--structure", '{"strength": 80, "imageReference": {"source": {"uploadId": "abc123"}}}',
+            "--prompt-biasing-locale-code", "en-US",
+            "--negative-prompt", "no text",
+            "--seed", "42",
+            "--aspect-ratio", "16:9",
+            "--output-format", "jpeg",
+            "--content-class", "photo",
+            "--use-mocks"
+        ]
+    )
+    assert result.exit_code == 0
+    assert "Generated image URL:" in result.output
+    # Valid content_class: art
+    result = runner.invoke(
+        app,
+        [
+            "image", "generate",
+            "--client-id", "dummy_id",
+            "--client-secret", "dummy_secret",
+            "--prompt", "test",
+            "--content-class", "art",
+            "--use-mocks"
+        ]
+    )
+    assert result.exit_code == 0
+    assert "Generated image URL:" in result.output
+    # Invalid content_class
+    result = runner.invoke(
+        app,
+        [
+            "image", "generate",
+            "--client-id", "dummy_id",
+            "--client-secret", "dummy_secret",
+            "--prompt", "test",
+            "--content-class", "invalid",
+            "--use-mocks"
+        ]
+    )
+    assert result.exit_code != 0
+    assert "content_class must be either 'photo' or 'art'" in result.output
+
+def test_generate_invalid_json_style(monkeypatch):
+    result = runner.invoke(
+        app,
+        [
+            "image", "generate",
+            "--client-id", "dummy_id",
+            "--client-secret", "dummy_secret",
+            "--prompt", "test",
+            "--style", "not-a-json",
+            "--use-mocks"
+        ]
+    )
+    assert result.exit_code == 2
+    assert "Invalid JSON for --style" in result.output
+
+def test_generate_invalid_json_structure(monkeypatch):
+    result = runner.invoke(
+        app,
+        [
+            "image", "generate",
+            "--client-id", "dummy_id",
+            "--client-secret", "dummy_secret",
+            "--prompt", "test",
+            "--structure", "not-a-json",
+            "--use-mocks"
+        ]
+    )
+    assert result.exit_code == 2
+    assert "Invalid JSON for --structure" in result.output
