@@ -127,7 +127,7 @@ requires-dist = [
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.3.5" },
     { name = "requests", specifier = ">=2.32.3" },
     { name = "responses", marker = "extra == 'dev'", specifier = ">=0.25.7" },
-    { name = "typer", extras = ["all"], marker = "extra == 'cli'", specifier = ">=0.12.3" },
+    { name = "typer", marker = "extra == 'cli'", specifier = ">=0.12.3" },
 ]
 provides-extras = ["dev", "cli"]
 
