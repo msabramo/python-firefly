@@ -1,5 +1,4 @@
 import os
-import shutil
 import tempfile
 import pytest
 from typer.testing import CliRunner
@@ -48,7 +47,7 @@ def test_generate_download_image(monkeypatch):
         with open(os.path.join(os.path.dirname(__file__), "images", "cat-coding.png"), "rb") as f:
             expected = f.read()
         assert content == expected
-        assert f"Downloaded image (" in result.output
+        assert "Downloaded image (" in result.output
 
 @mock.patch("subprocess.run")
 def test_generate_show_images(mock_run):
