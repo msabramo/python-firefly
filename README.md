@@ -1,5 +1,7 @@
 # Adobe Firefly Python Client
 
+[![CI](https://github.com/msabramo/python-firefly/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/msabramo/python-firefly/actions/workflows/ci.yml)
+
 A Python client for the Adobe Firefly API,
 created using the [Adobe Firefly API Documentation].
 
