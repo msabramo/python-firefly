@@ -1,10 +1,10 @@
 import os
-import shutil
 import tempfile
 import pytest
 from typer.testing import CliRunner
 from unittest import mock
 from firefly.cli import app, mock_image
+import re
 
 runner = CliRunner()
 
@@ -48,7 +48,7 @@ def test_generate_download_image(monkeypatch):
         with open(os.path.join(os.path.dirname(__file__), "images", "cat-coding.png"), "rb") as f:
             expected = f.read()
         assert content == expected
-        assert f"Downloaded image (" in result.output
+        assert "Downloaded image (" in result.output
 
 @mock.patch("subprocess.run")
 def test_generate_show_images(mock_run):
@@ -190,6 +190,10 @@ def test_generate_with_all_new_options(monkeypatch):
     assert result.exit_code != 0
     assert "content_class must be either 'photo' or 'art'" in result.output
 
+def strip_ansi(text):
+    ansi_escape = re.compile(r'\x1b\[[0-9;]*[mGKHF]')
+    return ansi_escape.sub('', text)
+
 def test_generate_invalid_json_style(monkeypatch):
     result = runner.invoke(
         app,
@@ -203,7 +207,8 @@ def test_generate_invalid_json_style(monkeypatch):
         ]
     )
     assert result.exit_code == 2
-    assert "Invalid JSON for --style" in result.output
+    assert "Invalid JSON for --style" in strip_ansi(result.output)
+
 
 def test_generate_invalid_json_structure(monkeypatch):
     result = runner.invoke(
@@ -218,7 +223,7 @@ def test_generate_invalid_json_structure(monkeypatch):
         ]
     )
     assert result.exit_code == 2
-    assert "Invalid JSON for --structure" in result.output
+    assert "Invalid JSON for --structure" in strip_ansi(result.output)
 
 def test_generate_invalid_num_variations(monkeypatch):
     # Test too low

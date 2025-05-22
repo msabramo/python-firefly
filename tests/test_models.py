@@ -1,4 +1,3 @@
-import pytest
 from firefly.models import FireflyImageSize, FireflyImage, FireflyImageOutput, FireflyImageResponse
 from unittest.mock import Mock
 
@@ -45,4 +44,4 @@ def test_firefly_image_response_content_class():
     img = FireflyImage(url="http://example.com/image.png")
     output = FireflyImageOutput(seed=2, image=img)
     resp = FireflyImageResponse(size=size, outputs=[output], contentClass="test-class")
-    assert resp.contentClass == "test-class" 
+    assert resp.contentClass == "test-class"

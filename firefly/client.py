@@ -137,5 +137,5 @@ class FireflyClient:
                 contentClass=resp_json.get("contentClass"),
                 _response=resp,
             )
-        except (KeyError, IndexError, TypeError) as e:
+        except (KeyError, IndexError, TypeError):
             raise FireflyAPIError(f"Unexpected response format: {resp}")
