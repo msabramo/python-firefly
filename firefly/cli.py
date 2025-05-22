@@ -104,7 +104,7 @@ def generate(
     num_variations: int = typer.Option(None, help="Number of images to generate (numVariations)"),
     style: str = typer.Option(None, help="Style object as JSON string (presets, imageReference, strength, etc.)"),
     structure: str = typer.Option(None, help="Structure object as JSON string (strength, imageReference, etc.)"),
-    prompt_biasing_locale_code: str = typer.Option(None, help="Locale code for prompt biasing (promptBiasingLocaleCode)"),
+    prompt_biasing_locale_code: str = typer.Option(None, help="Locale code for prompt biasing (promptBiasingLocaleCode), e.g., \"en-US\", \"en-IN\", \"zh-CN\""),
     negative_prompt: str = typer.Option(None, help="Negative prompt to avoid certain content"),
     seed: int = typer.Option(None, help="Seed for deterministic output"),
     aspect_ratio: str = typer.Option(None, help="Aspect ratio, e.g. '1:1', '16:9'"),
@@ -213,4 +213,4 @@ app.add_typer(image_app, name="image")
 
 
 if __name__ == "__main__":
-    app() 
+    app()
