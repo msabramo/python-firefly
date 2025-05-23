@@ -97,10 +97,6 @@ firefly image generate \
 
 The CLI will print the generated image URL.
 
-## More Information
-
-- [Adobe Firefly API Documentation]
-
 ## MCP Server Integration
 
 You can use this package as an [MCP] server, for example in editors like Cursor that support MCP servers.
@@ -126,6 +122,10 @@ To add the Adobe Firefly MCP server, add the following to the `mcpServers` or su
 Replace the `FIREFLY_CLIENT_ID` and `FIREFLY_CLIENT_SECRET` values with your own credentials.
 
 This will allow your editor to communicate with the Adobe Firefly API via the MCP server provided by this package.
+
+## More Information
+
+- [Adobe Firefly API Documentation]
 
 [Adobe Firefly API Documentation]: https://developer.adobe.com/firefly-services/docs/firefly-api/guides/#generate-an-image
 [MCP]: https://modelcontextprotocol.io/introduction
