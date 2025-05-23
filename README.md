@@ -44,6 +44,11 @@ print("Content class:", response.contentClass)
   - Generate an image from a text prompt. Returns a response object with attributes matching the API response (including outputs, size, contentClass, etc).
   - Additional keyword arguments are passed as parameters to the API.
 
+## Error Handling
+
+- `FireflyAuthError`: Raised for authentication/token errors
+- `FireflyAPIError`: Raised for general API errors or unexpected responses
+
 ## Command Line Interface (CLI)
 
 The `firefly` CLI allows you to generate images from the command line using the Adobe Firefly API.
@@ -91,11 +96,6 @@ firefly image generate \
 ```
 
 The CLI will print the generated image URL.
-
-## Error Handling
-
-- `FireflyAuthError`: Raised for authentication/token errors
-- `FireflyAPIError`: Raised for general API errors or unexpected responses
 
 ## More Information
 
