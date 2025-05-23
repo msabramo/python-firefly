@@ -101,6 +101,8 @@ The CLI will print the generated image URL.
 
 You can use this package as an [MCP] server, for example in editors like Cursor that support MCP servers.
 
+![Screenshot of using MCP server in Cursor](docs/images/cursor_mcp_001.png)
+
 To add the Adobe Firefly MCP server, add the following to the `mcpServers` or such section of an `mcp.json` file for your tool of choice:
 
 ```json
