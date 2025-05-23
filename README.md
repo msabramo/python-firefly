@@ -53,6 +53,9 @@ print("Content class:", response.contentClass)
 
 The `firefly` CLI allows you to generate images from the command line using the Adobe Firefly API.
 
+![Screenshot of CLI help](docs/images/cli_help.png)
+![Screenshot of CLI image generation](docs/images/cli_image_generate_and_show.png)
+
 ### Usage
 
 ```sh
