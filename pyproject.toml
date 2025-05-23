@@ -24,6 +24,7 @@ mcp-server = [
 
 [project.scripts]
 firefly = "firefly.cli:app"
+mcp-server = "firefly.mcp.server:mcp.run"
 
 [build-system]
 requires = ["setuptools>=61.0"]
