@@ -1,9 +1,8 @@
-# Adobe Firefly Python Client Library & CLI
+# Adobe Firefly Python Client Library, CLI, and MCP Server
 
 [![CI](https://github.com/msabramo/python-firefly/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/msabramo/python-firefly/actions/workflows/ci.yml)
 
-A Python client for the Adobe Firefly API,
-created using the [Adobe Firefly API Documentation].
+Pythonic, CLItastic, MCPerific image generation with the [Adobe Firefly API][Adobe Firefly API Documentation]
 
 ## Features
 
@@ -11,6 +10,8 @@ created using the [Adobe Firefly API Documentation].
 - Automatically handles access token retrieval and refresh
 - Generate images from text prompts
 - Simple, extensible interface
+- CLI for generating images from the command line
+- MCP server for use in editors like Cursor
 
 ## Requirements
 
@@ -42,6 +43,11 @@ print("Content class:", response.contentClass)
 - `generate_image(prompt: str, **kwargs) -> FireflyImageResponse`
   - Generate an image from a text prompt. Returns a response object with attributes matching the API response (including outputs, size, contentClass, etc).
   - Additional keyword arguments are passed as parameters to the API.
+
+## Error Handling
+
+- `FireflyAuthError`: Raised for authentication/token errors
+- `FireflyAPIError`: Raised for general API errors or unexpected responses
 
 ## Command Line Interface (CLI)
 
@@ -91,13 +97,35 @@ firefly image generate \
 
 The CLI will print the generated image URL.
 
-## Error Handling
+## MCP Server Integration
 
-- `FireflyAuthError`: Raised for authentication/token errors
-- `FireflyAPIError`: Raised for general API errors or unexpected responses
+You can use this package as an [MCP] server, for example in editors like Cursor that support MCP servers.
+
+To add the Adobe Firefly MCP server, add the following to the `mcpServers` or such section of an `mcp.json` file for your tool of choice:
+
+```json
+  "adobe_firefly": {
+    "type": "stdio",
+    "env": {
+      "FIREFLY_CLIENT_ID": "13cc...",
+      "FIREFLY_CLIENT_SECRET": "p8e-CB..."
+    },
+    "command": "uvx",
+    "args": [
+      "--from",
+      "git+https://github.com/msabramo/python-firefly[mcp-server]",
+      "mcp-server"
+    ]
+  },
+```
+
+Replace the `FIREFLY_CLIENT_ID` and `FIREFLY_CLIENT_SECRET` values with your own credentials.
+
+This will allow your editor to communicate with the Adobe Firefly API via the MCP server provided by this package.
 
 ## More Information
 
 - [Adobe Firefly API Documentation]
 
 [Adobe Firefly API Documentation]: https://developer.adobe.com/firefly-services/docs/firefly-api/guides/#generate-an-image
+[MCP]: https://modelcontextprotocol.io/introduction
