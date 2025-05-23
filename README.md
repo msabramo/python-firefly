@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/msabramo/python-firefly/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/msabramo/python-firefly/actions/workflows/ci.yml)
 
-Pythonic, CLItastic, MCPerific image generation with the [Adobe Firefly API][Adobe Firefly API Documentation]]
+Pythonic, CLItastic, MCPerific image generation with the [Adobe Firefly API][Adobe Firefly API Documentation]
 
 ## Features
 
